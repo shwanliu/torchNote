@@ -34,8 +34,20 @@
     1) __getitem__(self,idx)：返回对应index的数据
     2) __len__(self)：返回样本的数量。len(obj)等价于obj.__len__()
 
-* 通过DataLoader对自定的数据集进行载入
+* 通过DataLoader对自定的数据集进行载入,以及对图片进行预处理
+  1. resize到224
+  2. crop出224
+  3. 将图片数据转为tensor，以便后续计算，该函数同事进行对数值的归一化操作
 
+* dataset下还有一个常用的ImageFolder，他的实现和上述的DogCat很相似，ImageFolder假设所有的文件按文件夹保存，每个文件夹下存储同一个类别的图片，文件夹名为类名，其构造函数如下：ImageFloder(root,transform=None, target_transform=None,loader = default_loader)
+
+* 分类的网络：本次直接使用model中的resnet34的网络进行猫狗二分类的网络搭建，详情可以看model文件
+  
+* 使用损失函数：交叉熵损失函数
+  
+* 优化方法：直接使用Adam
+  
+### 注意：使用过程中发现猫狗数据集有的图片是单通道也有的图片是损坏的，所以重写dataSet，当遇到不符合要求的图片，重新在index一个
 
 
 
