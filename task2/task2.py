@@ -43,15 +43,19 @@ def train(x,y,weights,maxStep,lr):
         weights[0] -= lr* grad_w1 
         weights[1] -= lr* grad_w2
 
-
-#使用torch实现梯度下降
+# torch网络参数初始化的函数
+def init_weights(m):
+    if type(m) == nn.Linear:
+        torch.nn.init.xavier_uniform(m.weight)
+        m.bias.data.fill_(0.01)
+#使用torch实现梯度下降，使用pytorch实现一个简单的神经网络，两层的linear
 class easyNet(nn.Module):
     def __init__(self):
         super(easyNet,self).__init__()
         
-        self.linear1 = nn.Linear(100,1000,bias=False)
+        self.linear1 = nn.Linear(100,1000)
         self.relu = nn.ReLU()
-        self.linear2 = nn.Linear(1000,10,bias=False)
+        self.linear2 = nn.Linear(1000,10)
 
     def forward(self,x):
         x = self.linear1(x)
@@ -59,37 +63,45 @@ class easyNet(nn.Module):
         x = self.linear2(x)
         return x
 
+def trainEasyNet(data,label):
+     # torch 的
+     net = easyNet()
+    #apply函数会递归地搜索网络内的所有module并把参数表示的函数应用到所有的module上。  
+     net.apply(init_weights)
+    #  print(net)
+     print(data.shape)
+     mseLoss = nn.MSELoss()
+     for step in range(200):
+         output = net(data)
+         loss =mseLoss(output,label)
+         print("step:%d,loss:%.5f"%(step,loss))
+ 
+         net.zero_grad()
+         # 直接反向传播
+         loss.backward()
+ 
+         #这边不直接使用优化类optimizer来进行参数更新
+         with torch.no_grad():
+             for param in net.parameters():
+                 param.data -= (1e-5)*param.grad
+         #直接使用optimizer更新参数
+         # optim = optimizer = torch.optim.Adadelta(net.parameters(), lr=1e-5)
+         # optim.step()
+
 if __name__ == "__main__":
     #生成数据
     data,label = creatDataset(batch_size=8,in_channel=100,hidden_channel=1000,out_channle=10)
     #设定权重初始值
     weights = initWeight([100,1000,10],2)
+
     # 注学习率的设置
     #train(data,label,weights,maxStep=300,lr=1e-5)
+
     # 我们使用numpy创建的训练集，喂入torch必须将格式进行转换
     data = torch.from_numpy(data).float()
     label = torch.from_numpy(label).float()
-    # torch 的
-    net = easyNet()
-    print(net)
-    print(data.shape)
-    mseLoss = nn.MSELoss()
-    for step in range(100):
-        output = net(data)
-        loss =mseLoss(output,label)
-        print("step:%d,loss:%.5f"%(step,loss))
 
-        net.zero_grad()
-        # 直接反向传播
-        loss.backward()
-
-        #这边不直接使用优化类optimizer来进行参数更新
-        with torch.no_grad():
-            for param in net.parameters():
-                param.data -= (1e-5)*param.grad
-        #直接使用optimizer更新参数
-        # optim = optimizer = torch.optim.Adadelta(net.parameters(), lr=1e-5)
-        # optim.step()
-
+    # torch 的实现
+    trainEasyNet(data,label)
 
 
